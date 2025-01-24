@@ -12,21 +12,21 @@ Tener instalado:
 1. Clonar este repositorio:
    ```bash
    git clone https://github.com/Josephglz/inventory_management.git
-   cd inventory_management`
+   cd inventory_management
 2. Duplicar el archivo `.env.example` y renombrar a `.env`, dentro del mismo, se deberán modificar las variables de entorno siguientes: 
 	  ```bash
   	DB_HOST=localhost
   	DB_PORT=5432
   	DB_NAME=inventory
   	DB_USER=admin
-  	DB_PASSWORD=admin`
+  	DB_PASSWORD=admin
 ### **Configuración y ejecución**
 1. Instalar las dependencias de Node.js:
    ```bash
-   npm install`
+   npm install
 2. Levantar servicios de docker (Es importante contar con Docker Desktop iniciado)
   ```bash
-   docker-compose up -d`
+   docker-compose up -d
 
 
 ### En construcción...
