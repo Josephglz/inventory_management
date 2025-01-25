@@ -4,6 +4,7 @@ import { Op } from "sequelize";
 import Product from '../models/Product.js';
 import Inventory from '../models/Inventory.js';
 import sequelize from '../config/database.js';
+import { validateValue } from '../utils/validations.js';
 
 export const getProducts = async (req, res) => {
     try {
@@ -75,9 +76,19 @@ const createProduct = async (req, res) => {
         return res.status(400).json({ message: 'Todos los campos son requeridos. Por favor intente nuevamente.' });
     }
 
+    if(!validateValue(name) || !validateValue(description) || !validateValue(category) || !validateValue(price, 1, 10, true) || !validateValue(sku, 3)) {
+        return res.status(400).json({ message: 'Los datos ingresados no son válidos. Por favor intente nuevamente.' });
+    }
+
     const transaction = await sequelize.transaction();
 
     try {
+        const productExists = await Product.findOne({ where: { sku } });
+
+        if (productExists) {
+            return res.status(400).json({ message: `El producto con SKU: ${sku} ya existe.` });
+        }
+
         const newProduct = await Product.create({
             id: uuidv4(),
             name,
@@ -96,7 +107,7 @@ const createProduct = async (req, res) => {
 
     } catch (error) {
         await transaction.rollback();
-        console.error('[SERVER]: Error al crear el producto: ', error.message);
+        console.error('[SERVER]: Error al crear el producto: ', error.original.detail);
         return res.status(500).json({ message: 'Error al crear el producto. Por favor intente nuevamente.' });
     }
 }
