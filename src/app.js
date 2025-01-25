@@ -1,11 +1,14 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import { runMigrations } from './utils/migrations.js';
 
 dotenv.config();
 const app = express();
 
 const PORT = process.env.PORT || 3000;
 
-app.get("/", (req, res) => res.send("API is running..."));
+app.get("/", (req, res) => res.status(200).json({message: "API is running..."}));
 
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+runMigrations();
+
+app.listen(PORT, () => console.log(`[SERVER]: Running on http://localhost:${PORT}`));
