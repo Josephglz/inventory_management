@@ -8,66 +8,98 @@ import { validateValue } from '../utils/validations.js';
 
 export const getProducts = async (req, res) => {
     try {
-      const {
-        category,
-        minPrice,
-        maxPrice,
-        minStock,
-        maxStock,
-        page = 1,
-        limit = 10,
-      } = req.query;
+        const {
+            category,
+            minPrice,
+            maxPrice,
+            minStock,
+            maxStock,
+            page = 1,
+            limit = 10,
+        } = req.query;
   
-      const offset = (page - 1) * limit;
+        const offset = (page - 1) * limit;
   
-      const filters = {};
-      if (category) {
-        filters.category = category.replace(/-/g, " ");
-      }
-      if (minPrice || maxPrice) {
-        filters.price = {};
-        if (minPrice) filters.price[Op.gte] = parseFloat(minPrice);
-        if (maxPrice) filters.price[Op.lte] = parseFloat(maxPrice);
-      }
-  
-      const inventoryFilter =
-        minStock || maxStock
-          ? {
-              quantity: {
-                ...(minStock && { [Op.gte]: parseInt(minStock) }),
-                ...(maxStock && { [Op.lte]: parseInt(maxStock) }),
-              },
+        const filters = {};
+        if (category) {
+            filters.category = category.replace(/-/g, " ");
+        }
+        if (minPrice || maxPrice) {
+            if(minPrice && !validateValue(minPrice, 1, 10, true)) {
+                return res.status(400).json({ message: 'El valor mínimo no es válido. Por favor intente nuevamente.' });
+            } else if(maxPrice && !validateValue(maxPrice, 1, 10, true)) {
+                return res.status(400).json({ message: 'El valor máximo no es válido. Por favor intente nuevamente.' });
+            } else if(minPrice && parseFloat(minPrice) < 0) {
+                return res.status(400).json({ message: 'El valor mínimo no puede ser negativo. Por favor intente nuevamente.' });
+            } else if(maxPrice && minPrice && parseFloat(maxPrice) < parseFloat(minPrice)) {
+                return res.status(400).json({ message: 'El valor máximo no puede ser menor al mínimo. Por favor intente nuevamente.' });
             }
-          : undefined;
+            
+            filters.price = {};
+            if (minPrice) filters.price[Op.gte] = parseFloat(minPrice);
+            if (maxPrice) filters.price[Op.lte] = parseFloat(maxPrice);
+        }
+
+        if(minStock && !validateValue(minStock, 1, 10, true)) {
+            return res.status(400).json({ message: 'El stock mínimo no es válido. Por favor intente nuevamente.' });
+        } else if(maxStock && !validateValue(maxStock, 1, 10, true)) {
+            return res.status(400).json({ message: 'El stock máximo no es válido. Por favor intente nuevamente.' });
+        } else if(minStock && parseInt(minStock) < 0) {
+            return res.status(400).json({ message: 'El stock mínimo no puede ser negativo. Por favor intente nuevamente.' });
+        } else if(maxStock && minStock && parseInt(maxStock) < parseInt(minStock)) {
+            return res.status(400).json({ message: 'El stock máximo no puede ser menor al mínimo. Por favor intente nuevamente.' });
+        }
+
+        if(page && !validateValue(page, 1, 10, true)) {
+            return res.status(400).json({ message: 'El número de página no es válido. Por favor intente nuevamente.' });
+        }
+        if(page && parseInt(page) < 1) {
+            return res.status(400).json({ message: 'El número de página no puede ser menor a 1. Por favor intente nuevamente.' });
+        }
+        if(limit && !validateValue(limit, 1, 10, true)) {
+            return res.status(400).json({ message: 'El límite de productos no es válido. Por favor intente nuevamente.' });
+        }
+        if(limit && parseInt(limit) < 1) {
+            return res.status(400).json({ message: 'El límite de productos no puede ser menor a 1. Por favor intente nuevamente.' });
+        }
+
+        const inventoryFilter =
+            minStock || maxStock ? {
+                quantity: {
+                    ...(minStock && { [Op.gte]: parseInt(minStock) }),
+                    ...(maxStock && { [Op.lte]: parseInt(maxStock) }),
+                },
+            }
+            : undefined;
   
-      const products = await Product.findAndCountAll({
-        where: filters,
-        include: [
-          {
-            model: Inventory,
-            as: "inventories",
-            attributes: ["storeId", "quantity", "minStock"],
-            ...(inventoryFilter && { where: inventoryFilter }),
-          },
-        ],
-        ...(limit && { limit: parseInt(limit) }),
-        ...(offset && { offset: parseInt(offset) }),
-      });
+        const products = await Product.findAndCountAll({
+            where: filters,
+            include: [
+                {
+                    model: Inventory,
+                    as: "inventories",
+                    attributes: ["storeId", "quantity", "minStock"],
+                    ...(inventoryFilter && { where: inventoryFilter }),
+                },
+            ],
+            ...(limit && { limit: parseInt(limit) }),
+            ...(offset && { offset: parseInt(offset) }),
+        });
   
-      res.status(200).json({
-        message: "Lista de productos obtenida exitosamente",
-        products: products.rows,
-        total: products.count,
-        ...(limit && {
-          page: parseInt(page),
-          totalPages: Math.ceil(products.count / limit),
-        }),
-      });
+        res.status(200).json({
+            message: "Lista de productos obtenida exitosamente",
+            products: products.rows,
+            total: products.count,
+            ...(limit && {
+                page: parseInt(page),
+                totalPages: Math.ceil(products.count / limit),
+            }),
+        });
     } catch (error) {
       console.error(error.message);
       res.status(500).json({ message: "Error al obtener los productos", error: error.message });
     }
-  };
+};
 
 const createProduct = async (req, res) => {
     const { name, description, category, price, sku } = req.body;
