@@ -167,8 +167,51 @@ const transferInventory = async (req, res) => {
     }
 }
 
+const getLowStockProducts = async (req, res) => {
+    try {
+        const { storeId } = req.query;
+        
+        const filter = {
+            quantity: {
+                [Op.lt]: sequelize.col('minStock')
+            }
+        }
+        
+        if(storeId) filter.storeId = storeId;
+
+        const lowStockInventories = await Inventory.findAll({
+            where: filter,
+            include: [{
+                model: Product,
+                as: 'product',
+                attributes: ['id', 'name', 'category', 'price', 'sku']
+            }],
+            attributes: ['id', 'storeId', 'quantity', 'minStock']
+        })
+
+        if(lowStockInventories.length === 0) {
+            return res.status(404).json({
+                message: storeId ? 
+                    `No se encontraron productos con stock bajo en la tienda ID:${storeId}` :
+                    "No se encontraron productos con stock bajo"
+            })
+        }
+
+        return res.status(200).json({
+            message: storeId ? 
+                `Productos con stock bajo en la tienda ID:${storeId} obtenidos correctamente` :
+                "Productos con stock bajo obtenidos correctamente",
+            lowStock: lowStockInventories
+        });
+
+    } catch (error) {
+        console.error("[ERROR]: Error al obtener los productos con stock bajo ", error);
+        return res.status(500).json({ message: "Error al obtener los productos con stock bajo" });
+    }
+}
 export {
     getInventoryByStoreId,
     createInventory,
     transferInventory,
+    getLowStockProducts
 }
