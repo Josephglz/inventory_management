@@ -1,9 +1,10 @@
-require("dotenv").config();
-const express = require("express");
-const app = express();
-const PORT = process.env.PORT || 3000;
+import express from 'express';
+import dotenv from 'dotenv';
 
-app.use(express.json());
+dotenv.config();
+const app = express();
+
+const PORT = process.env.PORT || 3000;
 
 app.get("/", (req, res) => res.send("API is running..."));
 
