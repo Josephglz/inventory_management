@@ -89,6 +89,82 @@ const createInventory = async (req, res) => {
 }
 
 const transferInventory = async (req, res) => {
+    const { productId, sourceStoreId, targetStoreId, quantity } = req.body
+
+    if(!productId || !sourceStoreId || !targetStoreId || !quantity) return res.status(400).json({
+        message: "Todos los campos son requeridos. Por favor intente nuevamente."
+    });
+
+    if(isNaN(quantity) || quantity <= 0) return res.status(400).json({
+        message: "La cantidad introducida es inválida. Por favor intente nuevamente."
+    });
+
+    if(sourceStoreId === targetStoreId) return res.status(400).json({
+        message: "Las tiendas de origen y destino no pueden ser iguales. Por favor intente nuevamente."
+    });
+
+    const t = await sequelize.transaction();
+
+    try {
+        const product = await Product.findByPk(productId);
+        if(!product) return res.status(404).json({ message: `No se encontró el producto con el id ${productId}` });
+
+        const sourceInventory = await Inventory.findOne({ 
+            where: { productId, storeId: sourceStoreId }
+        });
+
+        if(!sourceInventory) return res.status(404).json({ message: `No se encontró inventario para el producto en la tienda de origen` });
+        if(sourceInventory.quantity < quantity) return res.status(400).json({
+            message: `La cantidad a transferir (${quantity}) excede la cantidad disponible en la tienda de origen (${sourceInventory.quantity}).`
+        });
+
+        let targetInventory = await Inventory.findOne({ 
+            where: { productId, storeId: targetStoreId }
+        });
+
+        if(!targetInventory) {
+            targetInventory = await Inventory.create({
+                id: uuidv4(),
+                productId,
+                storeId: targetStoreId,
+                quantity: 0,
+                minStock: sourceInventory.minStock || 0
+            }, { transaction: t });
+        }
+
+        await sourceInventory.update(
+            {quantity: sourceInventory.quantity - quantity},
+            {transaction: t}
+        )
+
+        await targetInventory.update(
+            {quantity: targetInventory.quantity + quantity},
+            {transaction: t}
+        )
+
+        const newMovement = await Movement.create({
+            id: uuidv4(),
+            productId,
+            sourceStoreId,
+            targetStoreId,
+            quantity,
+            timestamp: new Date(),
+            type: "TRANSFER"
+        }, { transaction: t });
+
+        await t.commit();
+
+        return res.status(201).json({
+            message: "Inventario transferido correctamente",
+            movement: newMovement,
+            product,
+        });
+
+    } catch (error) {
+        await t.rollback();
+        console.error("[ERROR]: Error al transferir inventario ", error);
+        return res.status(500).json({ message: "Error al transferir inventario" });
+    }
 }
 
 export {
