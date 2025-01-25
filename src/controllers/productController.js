@@ -101,6 +101,38 @@ const getProducts = async (req, res) => {
     }
 };
 
+const getProductById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!id) {
+            return res.status(400).json({ message: 'El ID del producto es requerido. Por favor intente nuevamente.' });
+        }
+
+        const product = await Product.findByPk(id, {
+            include: [
+                {
+                    model: Inventory,
+                    as: "inventories",
+                    attributes: ["storeId", "quantity", "minStock"],
+                },
+            ],
+        });
+
+        if (!product) {
+            return res.status(404).json({ message: `Producto con ID: ${id} no encontrado.` });
+        }
+
+        res.status(200).json({
+            message: 'Producto obtenido exitosamente.',
+            product
+        });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({ message: "Error al obtener el producto", error: error.message });
+    }
+}
+
 const createProduct = async (req, res) => {
     const { name, description, category, price, sku } = req.body;
 
@@ -139,12 +171,13 @@ const createProduct = async (req, res) => {
 
     } catch (error) {
         await transaction.rollback();
-        console.error('[SERVER]: Error al crear el producto: ', error.original.detail);
+        console.error('[SERVER]: Error al crear el producto: ', error.message);
         return res.status(500).json({ message: 'Error al crear el producto. Por favor intente nuevamente.' });
     }
 }
 
 export {
     getProducts,
+    getProductById,
     createProduct
 }
