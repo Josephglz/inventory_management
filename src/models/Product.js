@@ -36,6 +36,7 @@ const Product = sequelize.define('Product', {
     timestamps: false,
     indexes: [
         { fields: ['category'] },
+        { fields: ['price'] },
         { fields: ['sku'] }
     ]
 })
