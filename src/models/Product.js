@@ -31,7 +31,11 @@ const Product = sequelize.define('Product', {
     }
 }, {
     tableName: 'products',
-    timestamps: false
+    timestamps: false,
+    indexes: [
+        { fields: ['category'] },
+        { fields: ['sku'] }
+    ]
 })
 
 export default Product;

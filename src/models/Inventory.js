@@ -30,6 +30,10 @@ const Inventory = sequelize.define('Inventory', {
 }, {
   tableName: 'inventories',
   timestamps: false,
+  indexes: [
+    { fields: ['productId'] },
+    { fields: ['storeId'] },
+  ],
 });
 
 export default Inventory;

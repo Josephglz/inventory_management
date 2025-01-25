@@ -35,6 +35,11 @@ const Movement = sequelize.define('Movement', {
 }, {
   tableName: 'movements',
   timestamps: false,
+  indexes: [
+    { fields: ['productId'] },
+    { fields: ['sourceStoreId'] },
+    { fields: ['targetStoreId'] },
+  ],
 });
 
 export default Movement;

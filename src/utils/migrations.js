@@ -5,7 +5,7 @@ import Movement from '../models/Movement.js';
 
 async function runMigrations() {
   try {
-    await sequelize.sync({ alter: true });
+    await sequelize.sync({ force: true });
     console.log('[DATABASE]: Migrations executed successfully');
   } catch (error) {
     console.error('[DATABASE]: Error while running migrations: ', error);
