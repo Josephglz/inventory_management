@@ -50,13 +50,13 @@ const getProducts = async (req, res) => {
             return res.status(400).json({ message: 'El stock máximo no puede ser menor al mínimo. Por favor intente nuevamente.' });
         }
 
-        if(page && !validateValue(page, 1, 10, true)) {
+        if(page && !isNaN(page) && parseInt(page) < 1) {
             return res.status(400).json({ message: 'El número de página no es válido. Por favor intente nuevamente.' });
         }
         if(page && parseInt(page) < 1) {
             return res.status(400).json({ message: 'El número de página no puede ser menor a 1. Por favor intente nuevamente.' });
         }
-        if(limit && !validateValue(limit, 1, 10, true)) {
+        if(limit && !isNaN(limit) && parseInt(limit) < 1) {
             return res.status(400).json({ message: 'El límite de productos no es válido. Por favor intente nuevamente.' });
         }
         if(limit && parseInt(limit) < 1) {
@@ -96,8 +96,8 @@ const getProducts = async (req, res) => {
             }),
         });
     } catch (error) {
-      console.error(error.message);
-      res.status(500).json({ message: "Error al obtener los productos", error: error.message });
+        console.error('[SERVER]: Error al obtener los productos: ', error.message);
+        res.status(500).json({ message: "Error al obtener los productos", error: error.message });
     }
 };
 
@@ -128,7 +128,7 @@ const getProductById = async (req, res) => {
             product
         });
     } catch (error) {
-        console.error(error.message);
+        console.error('[SERVER]: Error al obtener el producto: ', error.message);
         res.status(500).json({ message: "Error al obtener el producto", error: error.message });
     }
 }
@@ -220,9 +220,39 @@ const updateProduct = async (req, res) => {
     }
 }
 
+const deleteProduct = async (req, res) => {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ 
+        message: 'El ID del producto es requerido. Por favor intente nuevamente.'
+    });
+
+    const transaction = await sequelize.transaction();
+
+    try {
+        const product = await Product.findByPk(id);
+
+        if(!product) {
+            return res.status(404).json({ message: `Producto con ID: ${id} no encontrado.` });
+        }
+
+        //TODO: Test after adding FK and relations to the inventory controller
+        await Inventory.destroy({ where: { productId: id }, transaction });
+        await product.destroy({ transaction });
+        
+        await transaction.commit();
+
+        return res.status(200).json({ message: 'Producto eliminado exitosamente.' });
+    } catch (error) {
+        await transaction.rollback();
+        console.error('[SERVER]: Error al eliminar el producto: ', error.message);
+        res.status(500).json({ message: "Error al eliminar el producto", error: error.message });
+    }
+}
+
 export {
     getProducts,
     getProductById,
     createProduct,
     updateProduct,
+    deleteProduct
 }
