@@ -1,4 +1,5 @@
 import { DataTypes } from "sequelize";
+import { v4 as uuidv4 } from 'uuid';
 import sequelize from "../config/database.js";
 
 const Product = sequelize.define('Product', {
@@ -6,6 +7,7 @@ const Product = sequelize.define('Product', {
         type: DataTypes.STRING,
         primaryKey: true,
         allowNull: false,
+        defaultValue: uuidv4(),
         unique:true
     },
     name: {
