@@ -176,8 +176,53 @@ const createProduct = async (req, res) => {
     }
 }
 
+const updateProduct = async (req, res) => {
+    const { id } = req.params;
+    const { name, description, category, price, sku } = req.body;
+    if (!id) return res.status(400).json({ 
+        message: 'El ID del producto es requerido. Por favor intente nuevamente.' });
+    if (!name || !description || !category || !price || !sku) return res.status(400).json({ 
+        message: 'Todos los campos son requeridos. Por favor intente nuevamente.' });
+    if(!validateValue(name) || !validateValue(description) || !validateValue(category) || !validateValue(price, 1, 10, true) || !validateValue(sku, 3)) return res.status(400).json({ 
+        message: 'Los datos ingresados no son válidos. Por favor intente nuevamente.' });
+
+    const transaction = await sequelize.transaction();
+    try {
+        const product = await Product.findByPk(id);
+
+        if (!product) {
+            return res.status(404).json({ message: `Producto con ID: ${id} no encontrado.` });
+        }
+
+        const skuExists = await Product.findOne({ where: { sku, id: { [Op.ne]: id } } });
+        if (skuExists) return res.status(400).json({
+            message: `El SKU: ${sku} ya está en uso.`
+        });
+
+        await product.update({
+            name,
+            description,
+            category,
+            price,
+            sku
+        }, { transaction });
+
+        await transaction.commit();
+
+        return res.status(200).json({
+            message: 'Producto actualizado exitosamente.',
+            product
+        });
+    } catch (error) {
+        await transaction.rollback();
+        console.error('[SERVER]: Error al actualizar el producto: ', error.message);
+        res.status(500).json({ message: "Error al actualizar el producto", error: error.message });
+    }
+}
+
 export {
     getProducts,
     getProductById,
-    createProduct
+    createProduct,
+    updateProduct,
 }
