@@ -6,7 +6,7 @@ import Inventory from '../models/Inventory.js';
 import sequelize from '../config/database.js';
 import { validateValue } from '../utils/validations.js';
 
-export const getProducts = async (req, res) => {
+const getProducts = async (req, res) => {
     try {
         const {
             category,
@@ -145,5 +145,6 @@ const createProduct = async (req, res) => {
 }
 
 export {
+    getProducts,
     createProduct
 }
