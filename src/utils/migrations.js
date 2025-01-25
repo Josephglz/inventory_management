@@ -1,7 +1,5 @@
 import sequelize from '../config/database.js';
-import Product from '../models/Product.js';
-import Inventory from '../models/Inventory.js';
-import Movement from '../models/Movement.js';
+import { Product, Inventory, Movement } from '../models/index.js';
 
 async function runMigrations() {
   try {
