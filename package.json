@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
-    "test": "npx jest --coverage --verbose --detectOpenHandles"    
+    "test": "npx jest --coverage --verbose --detectOpenHandles --silent"    
   },
   "dependencies": {
     "dotenv": "^16.4.7",
