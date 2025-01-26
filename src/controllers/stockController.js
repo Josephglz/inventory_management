@@ -2,8 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Op } from "sequelize";
 import { validateValue } from '../utils/validations.js';
 
-import Product from '../models/Product.js';
-import Inventory from '../models/Inventory.js';
+import { Inventory, Product } from '../models/index.js';
 import Movement from '../models/Movement.js';
 import sequelize from '../config/database.js';
 
@@ -44,7 +43,7 @@ const createInventory = async (req, res) => {
         message: "Todos los campos son requeridos. Por favor intente nuevamente."
     });
 
-    if(isNaN(quantity) && isNaN(minStock) && quantity >= 0 && minStock >= 0) return res.status(400).json({
+    if (isNaN(quantity) || isNaN(minStock) || quantity < 0 || minStock < 0) return res.status(400).json({
         message: "Los datos ingresados no son válidos. Por favor intente nuevamente."
     });
 

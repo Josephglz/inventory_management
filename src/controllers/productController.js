@@ -1,8 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Op } from "sequelize";
 
-import Product from '../models/Product.js';
-import Inventory from '../models/Inventory.js';
+import { Product, Inventory } from '../models/index.js';
 import sequelize from '../config/database.js';
 import { validateValue } from '../utils/validations.js';
 
@@ -235,7 +234,6 @@ const deleteProduct = async (req, res) => {
             return res.status(404).json({ message: `Producto con ID: ${id} no encontrado.` });
         }
 
-        //TODO: Test after adding FK and relations to the inventory controller
         await Inventory.destroy({ where: { productId: id }, transaction });
         await product.destroy({ transaction });
         
