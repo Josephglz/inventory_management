@@ -136,6 +136,28 @@ http://64.23.155.12/api
 
 ---
 
+## **Decisiones técnicas**
+Durante el desarrollo de la API de Gestión de Inventarios, se eligieron tecnologías y herramientas modernas para garantizar escalabilidad, rendimiento y facilidad de mantenimiento. A continuación, se explican las decisiones técnicas tomadas:
+
+### **Lenguajes y Frameworks**
+
+- **Node.js**: Usado para el backend debido a su alto rendimiento y ecosistema maduro de paquetes.
+- **Express.js**: Framework minimalista que facilita la creación de API REST.
+- **Sequelize**: ORM utilizado para interactuar con la base de datos PostgreSQL, lo que simplifica las consultas SQL y las migraciones de datos.
+
+### **Base de Datos**
+
+- **PostgreSQL**: Base de datos relacional elegida por su robustez y soporte para transacciones complejas.
+
+### **Configuración de entorno y despliegue**
+- **Docker**: Utilizado para contenerizar la base de datos y la aplicación, garantizando un entorno de ejecución consistente.
+- **DigitalOcean**: Plataforma de cloud computing elegida para el despliegue de la API, por su facilidad de uso y escalabilidad.
+- **GitHub**: Repositorio centralizado para controlar versiones del código y colaborar en equipo.
+- **Artillery**: Herramienta para realizar pruebas de carga y medir el rendimiento de la API.
+- **Jest y Supertest**: Utilizados para pruebas unitarias y de integración, garantizando la calidad del código y la funcionalidad de la API.
+
+---
+
 ## **Contacto**
 - Autor: Joseph Gonzalez
 - GitHub: [https://github.com/Josephglz](https://github.com/Josephglz)
